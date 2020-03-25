@@ -14,6 +14,9 @@ public class Mapper {
 	public Optional<DiscordMessage> bitbucketToDiscord(String json) throws IOException {
 		JsonNode root = new ObjectMapper().readTree(json);
 
+		if (!root.has("eventKey")) {
+			return Optional.empty();
+		}
 		switch (root.get("eventKey").asText()) {
 			case "pr:opened":
 				return Optional.of(this.openPr(root));

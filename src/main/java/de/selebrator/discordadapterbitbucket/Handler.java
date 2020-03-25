@@ -39,15 +39,19 @@ public class Handler {
 	}
 
 	public boolean handleRequest(InputStream inputStream) throws IOException {
-		Mapper mapper = new Mapper();
-		String json = this.convertInputStream(inputStream);
-		System.out.println("IN  " + json);
-		Optional<DiscordMessage> message = mapper.bitbucketToDiscord(json);
-		if (message.isPresent()) {
-			DiscordConnector connector = new DiscordConnector(this.webhookUrl);
-			return connector.postRequest(message.get());
+		try {
+			Mapper mapper = new Mapper();
+			String json = this.convertInputStream(inputStream);
+			System.out.println("IN  " + json);
+			Optional<DiscordMessage> message = mapper.bitbucketToDiscord(json);
+			if (message.isPresent()) {
+				DiscordConnector connector = new DiscordConnector(this.webhookUrl);
+				return connector.postRequest(message.get());
+			}
+			return true;
+		} catch (Exception e) {
+			return false;
 		}
-		return true;
 	}
 
 	private String convertInputStream(InputStream inputStream) throws IOException {
