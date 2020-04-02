@@ -2,7 +2,9 @@ package de.selebrator.discordadapterbitbucket;
 
 import de.selebrator.discordadapterbitbucket.model.DiscordMessage;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -25,14 +27,32 @@ public class DiscordConnector {
 		connection.setRequestProperty("Content-Type", "application/json;");
 		connection.setDoOutput(true);
 		connection.setRequestProperty("Content-length", String.valueOf(json.length()));
-		try (OutputStream os = connection.getOutputStream()){
+		try (OutputStream os = connection.getOutputStream()) {
 			os.write(json.getBytes());
 			os.flush();
 		} catch (IOException ex) {
+			System.err.println("REQUEST ERROR");
+			ex.printStackTrace();
+			System.out.println("END OF ERROR");
 			return (false);
 		}
 		try {
-			return connection.getResponseCode() / 100 == 2;
+			boolean ok = connection.getResponseCode() / 100 == 2;
+			if (!ok) {
+				System.err.println("RESPONSE ERROR");
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+					System.err.println("Input Stream: " + reader.lines());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getErrorStream()))) {
+					System.err.println("Error Stream : " + reader.lines());
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				System.out.println("END OF ERROR");
+			}
+			return ok;
 		} catch (IOException ex) {
 			return (false);
 		}
